@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Signature Pad with Preview</title>
+    <style>
+      #signatureCanvas {
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        touch-action: none;
+      }
+      .btn-group {
+        margin-top: 10px;
+      }
+      button {
+        margin-right: 10px;
+      }
+      #preview {
+        margin-top: 15px;
+        border: 1px solid #999;
+        max-width: 100%;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>簽名板</h2>
+    <canvas id="signatureCanvas" width="500" height="300"></canvas>
+    <div class="btn-group">
+      <button onclick="undo()">Undo</button>
+      <button onclick="clearCanvas()">Clear</button>
+      <button onclick="save()">Save (Base64)</button>
+    </div>
+
+    <h3>預覽圖片：</h3>
+    <img id="preview" alt="Signature Preview" />
+    <textarea id="output" rows="5" cols="60" readonly></textarea>
+
+    <script>
+      const canvas = document.getElementById("signatureCanvas");
+      const ctx = canvas.getContext("2d");
+      const previewImg = document.getElementById("preview");
+      let drawing = false;
+      let currentPath = [];
+      let paths = [];
+
+      // Start drawing
+      canvas.addEventListener("mousedown", start);
+      canvas.addEventListener("touchstart", start, { passive: false });
+
+      // Drawing
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("touchmove", draw, { passive: false });
+
+      // Stop drawing
+      canvas.addEventListener("mouseup", end);
+      canvas.addEventListener("mouseleave", end);
+      canvas.addEventListener("touchend", end);
+      canvas.addEventListener("touchcancel", end);
+
+      function getPosition(e) {
+        if (e.touches) {
+          return {
+            x: e.touches[0].clientX - canvas.getBoundingClientRect().left,
+            y: e.touches[0].clientY - canvas.getBoundingClientRect().top,
+          };
+        } else {
+          return {
+            x: e.offsetX,
+            y: e.offsetY,
+          };
+        }
+      }
+
+      function start(e) {
+        e.preventDefault();
+        drawing = true;
+        currentPath = [];
+        const pos = getPosition(e);
+        currentPath.push(pos);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      }
+
+      function draw(e) {
+        if (!drawing) return;
+        const pos = getPosition(e);
+        currentPath.push(pos);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      }
+
+      function end() {
+        if (!drawing) return;
+        drawing = false;
+        paths.push(currentPath);
+      }
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        paths = [];
+        currentPath = [];
+        previewImg.style.display = "none";
+        document.getElementById("output").value = "";
+      }
+
+      function undo() {
+        paths.pop();
+        redraw();
+      }
+
+      function redraw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        for (const path of paths) {
+          if (path.length > 0) {
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+              ctx.lineTo(path[i].x, path[i].y);
+            }
+          }
+        }
+        ctx.stroke();
+      }
+
+      function save() {
+        const base64 = canvas.toDataURL("image/png");
+        document.getElementById("output").value = base64;
+
+        // 預覽圖片
+        previewImg.src = base64;
+        previewImg.style.display = "block";
+      }
+    </script>
+  </body>
+</html>
