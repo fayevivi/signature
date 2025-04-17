@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>signature</title>
+  </head>
+
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <canvas
+      id="sig-canvas"
+      width="300"
+      height="200"
+      style="border: 1px solid #ccc; touch-action: none"
+    ></canvas>
+    <br />
+    <button onclick="clearSignature()">清除簽名</button>
+    <button onclick="undoSignature()">清除上一劃</button>
+    <button onclick="saveSignature()">儲存簽名</button>
+    <script>
+      const canvas = document.getElementById("sig-canvas");
+      const signaturePad = new SignaturePad(canvas);
+
+      function clearSignature() {
+        signaturePad.clear();
+      }
+
+      function undoSignature() {
+        var data = signaturePad.toData();
+        if (data) {
+          data.pop(); // remove the last dot or line
+          signaturePad.fromData(data);
+        }
+      }
+
+      function saveSignature() {
+        if (signaturePad.isEmpty()) {
+          alert("請簽名後再儲存！");
+          return;
+        }
+
+        // 把簽名轉成 Base64 圖片字串（PNG）
+        const dataURL = signaturePad.toDataURL();
+
+        // 你可以用來傳送到伺服器、顯示在網頁上等等
+        console.log("簽名圖片 Base64：", dataURL);
+
+        // 示範：在頁面顯示簽名圖
+        const img = document.createElement("img");
+        img.src = dataURL;
+        document.body.appendChild(img);
+      }
+    </script>
+  </body>
+</html>
