@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smooth Signature Example</title>
+    <style>
+      #signatureCanvas {
+        border: 1px solid #ccc;
+        width: 100%;
+        max-width: 500px;
+        height: 300px;
+        touch-action: none; /* 觸控裝置支援 */
+      }
+      .controls {
+        margin-top: 10px;
+      }
+      .controls button {
+        margin-right: 10px;
+      }
+      #output {
+        margin-top: 10px;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Please Sign Below:</h2>
+    <canvas id="signatureCanvas"></canvas>
+
+    <div class="controls">
+      <button id="undo">Undo</button>
+      <button id="clear">Clear</button>
+      <button id="save">Save</button>
+    </div>
+
+    <p>Signature as Base64 PNG:</p>
+    <div id="output"></div>
+
+    <!-- 引入 smooth-signature -->
+    <script src="https://unpkg.com/smooth-signature/dist/index.umd.min.js"></script>
+    <script>
+      // 取得 canvas 元素
+      const canvas = document.getElementById("signatureCanvas");
+
+      // 初始化 smooth-signature
+      const signature = new SmoothSignature(canvas, {
+        width: 500, // 畫布寬度（可依你的需求調整）
+        height: 300, // 畫布高度
+        color: "#000", // 簽名線條顏色
+        bgColor: "#fff", // 畫布背景顏色
+        minWidth: 2, // 筆劃最細寬度
+        maxWidth: 6, // 筆劃最粗寬度
+        openSmooth: true, // 啟用平滑模式
+      });
+
+      // 綁定按鈕事件
+      document.getElementById("undo").addEventListener("click", () => {
+        signature.undo(); // 撤銷上一步
+      });
+
+      document.getElementById("clear").addEventListener("click", () => {
+        signature.clear(); // 清除畫布
+      });
+
+      document.getElementById("save").addEventListener("click", () => {
+        if (signature.isEmpty()) {
+          alert("Please provide a signature first!");
+          return;
+        }
+
+        // 取得 Base64 PNG 字串（也可以用 signature.getJPG()）
+        const dataURL = signature.getPNG();
+
+        // 將結果顯示在頁面上
+        document.getElementById("output").textContent = dataURL;
+
+        // 你也可以透過 AJAX 或 fetch 上傳到後端
+        /* Example:
+      fetch('/api/upload-signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataURL })
+      }).then(res => res.json()).then(data => {
+        console.log("Upload success:", data);
+      }).catch(error => {
+        console.error("Error uploading signature:", error);
+      });
+      */
+      });
+
+      // 可選：自動調整 canvas 尺寸
+      function resizeCanvas() {
+        // 假設用 css 設定 canvas 的呈現大小，
+        // 這邊可重新設定 canvas 元素內實際畫布的大小
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+    </script>
+  </body>
+</html>
