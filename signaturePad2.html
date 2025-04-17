@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signature Pad Example</title>
+    <style>
+      #signature-pad {
+        border: 1px solid #ccc;
+        width: 100%;
+        max-width: 500px;
+        height: 300px;
+        touch-action: none; /* 手機支援 */
+      }
+      .buttons {
+        margin-top: 10px;
+      }
+      button {
+        margin-right: 10px;
+      }
+      #output {
+        margin-top: 10px;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>請簽名：</h2>
+    <canvas id="signature-pad"></canvas>
+    <div class="buttons">
+      <button id="undo">Undo</button>
+      <button id="clear">Clear</button>
+      <button id="save">Save</button>
+    </div>
+    <p>Base64 圖片資料：</p>
+    <div id="output"></div>
+
+    <!-- 引入 Signature Pad -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+    <script>
+      const canvas = document.getElementById("signature-pad");
+      const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: "rgba(255, 255, 255, 0)", // 背景透明
+        penColor: "black",
+      });
+
+      // 自動調整 canvas 大小
+      function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+        signaturePad.clear(); // 重設簽名
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      // Undo 功能
+      document.getElementById("undo").addEventListener("click", () => {
+        const data = signaturePad.toData();
+        if (data.length > 0) {
+          data.pop(); // 移除最後一筆
+          signaturePad.fromData(data);
+        }
+      });
+
+      // Clear 功能
+      document.getElementById("clear").addEventListener("click", () => {
+        signaturePad.clear();
+      });
+
+      // Save as base64
+      document.getElementById("save").addEventListener("click", () => {
+        if (signaturePad.isEmpty()) {
+          alert("請先簽名！");
+        } else {
+          const dataURL = signaturePad.toDataURL("image/png");
+          document.getElementById("output").textContent = dataURL;
+          // 可用 fetch 傳到後端，如：
+          // fetch('/api/upload', {
+          //   method: 'POST',
+          //   body: JSON.stringify({ image: dataURL }),
+          //   headers: { 'Content-Type': 'application/json' }
+          // });
+        }
+      });
+    </script>
+  </body>
+</html>
